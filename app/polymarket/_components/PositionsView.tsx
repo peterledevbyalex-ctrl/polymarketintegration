@@ -34,7 +34,9 @@ export const PositionsView: React.FC<PositionsViewProps> = ({ positions, isLoadi
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
   const [walletSignature, setWalletSignature] = useState<string | null>(null);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
-  const ethPrice = parseFloat(lastEthPrice) || 3000; // From Redstone via useApp
+  // Fix: parseFloat("0") returns 0, not falsy, so || doesn't work
+  const ethPriceParsed = parseFloat(lastEthPrice);
+  const ethPrice = ethPriceParsed > 0 ? ethPriceParsed : 3000; // From Redstone via useApp
   
   const { data: ethBalance } = useBalance({
     address: userAddress as `0x${string}` | undefined,

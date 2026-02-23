@@ -145,7 +145,8 @@ export const MarketCard: React.FC<MarketCardProps> = ({
 
   const amountEth = useMemo(() => {
     const amountNumber = Number(amount);
-    const ethPrice = Number(lastEthPrice);
+    const ethPriceParsed = Number(lastEthPrice);
+    const ethPrice = ethPriceParsed > 0 ? ethPriceParsed : 3000; // Fallback to 3000
     if (!amountNumber || !ethPrice) return '';
     return (amountNumber / ethPrice).toFixed(6);
   }, [amount, lastEthPrice]);

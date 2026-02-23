@@ -176,6 +176,39 @@ export interface Market {
   category?: string;
   subcategory?: string;
   tags?: string[];
+  
+  // Enhanced fields for better data consistency
+  negRisk?: boolean;              // Advanced market type
+  tickSize?: string;              // Price precision (e.g., "0.01")
+  feeRate?: string;               // Trading fee rate
+  minOrderSize?: string;          // Minimum order size
+  maxOrderSize?: string;          // Maximum order size
+  
+  // Sports-specific fields
+  sport?: string;                 // Sport type (NFL, NBA, etc.)
+  league?: string;                // League name
+  team?: string;                  // Team involved
+  homeTeam?: string;              // Home team name
+  awayTeam?: string;              // Away team name
+  spread?: number;                // Point spread
+  total?: number;                 // Over/under total
+  market_type?: 'winner' | 'spread' | 'total' | 'player_props'; // Market type
+  
+  // Crypto-specific fields  
+  cryptoAsset?: string;           // BTC, ETH, SOL, etc.
+  targetPrice?: number;           // Target price for price markets
+  timeframe?: '5M' | '10M' | '1H' | '4H' | '1D' | '1W'; // Time-based resolution
+  
+  // Technical fields
+  createdAt?: string;             // Market creation timestamp
+  updatedAt?: string;             // Last update timestamp
+  resolvedAt?: string;            // Resolution timestamp
+  settledAt?: string;             // Settlement timestamp
+  
+  // Market maker fields
+  makerFee?: string;              // Maker fee rate  
+  takerFee?: string;              // Taker fee rate
+  protocolFee?: string;           // Protocol fee rate
 }
 
 export interface Tag {

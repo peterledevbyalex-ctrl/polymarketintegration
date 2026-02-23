@@ -11,6 +11,8 @@ import { BackgroundMask } from '@/components/BackgroundMask';
 import { useFeaturedMarkets } from '@/hooks/useFeaturedMarkets';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useTags } from '@/hooks/useTags';
+import { useEnhancedCryptoMarkets } from '@/hooks/useEnhancedCryptoMarkets';
+import { useSportsMarkets } from '@/hooks/useSports';
 import { useApp } from '@/providers/AppProvider';
 import { Market } from '@/types/polymarket.types';
 import { polymarketAPI } from '@/lib/polymarket/api';
@@ -143,7 +145,7 @@ export const PolymarketPageContent: React.FC = () => {
     label.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
   const findTag = (category: string) => {
     const normalizedCategory = normalizeLabel(category);
-    if (!normalizedCategory) return undefined;
+    if (!normalizedCategory || !tags || tags.length === 0) return undefined;
 
     const categoryCandidates: Record<string, string[]> = {
       all: ['all'],
@@ -157,7 +159,11 @@ export const PolymarketPageContent: React.FC = () => {
     };
     const candidates = categoryCandidates[normalizedCategory] || [normalizedCategory];
 
+    // Fallback to simple category matching if no tags available
+    if (!tags || tags.length === 0) return undefined;
+
     const exact = tags.find((tag) => {
+      if (!tag) return false;
       const normalizedSlug = normalizeLabel(tag.slug || '');
       const normalizedTagLabel = normalizeLabel(tag.label || '');
       return (
@@ -168,6 +174,7 @@ export const PolymarketPageContent: React.FC = () => {
     });
     if (exact) return exact;
     return tags.find((tag) => {
+      if (!tag) return false;
       const normalizedSlug = normalizeLabel(tag.slug || '');
       const normalizedTagLabel = normalizeLabel(tag.label || '');
       return candidates.some(

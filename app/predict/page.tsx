@@ -1,5 +1,6 @@
 import React from 'react'
 import { PolymarketPageContent } from './_components/PolymarketPageContent'
+import { SimplifiedPageContent } from './_components/SimplifiedPageContent'
 
 type PredictPageProps = {
     params: Promise<{}>,
@@ -13,7 +14,11 @@ export const metadata = {
 }
 
 const PredictPage: React.FC<PredictPageProps> = async ({ searchParams }) => {
-    return <PolymarketPageContent />
+    // Use simplified version with better filtering as default
+    // Set USE_SIMPLIFIED_FILTERS=false in .env to use legacy system
+    const useSimplified = process.env.USE_SIMPLIFIED_FILTERS !== 'false'
+    
+    return useSimplified ? <SimplifiedPageContent /> : <PolymarketPageContent />
 }
 
 export default PredictPage
