@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@rainbow-me/rainbowkit/styles.css";
+@import "@avon_xyz/widget/styles.css";
+
+/* @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;600&display=swap'); */
+
+@config "../tailwind.config.js";
+
+@import "./prism-theme.css";
+

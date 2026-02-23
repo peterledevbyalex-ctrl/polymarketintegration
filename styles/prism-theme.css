@@ -1,0 +1,124 @@
+@layer base {
+    :root {
+        --font-sans: "DM Sans", sans-serif;
+        --font-body: "Inter", sans-serif;
+        --radius: 12px;
+
+        /* Light mode */
+        --color-primary: 258 100% 86%;
+        --color-primary-foreground: 0 0% 100%;
+        --color-secondary: 240 6% 20%;
+        --color-secondary-foreground: 258 100% 86%;
+        --color-tertiary: 10 85% 75%;
+        --color-tertiary-foreground: 0 0% 10%;
+        --color-neutral: 0 0% 97%;
+        --color-neutral-foreground: 0 0% 10%;
+        --color-success: 150 65% 45%;
+        --color-warning: 35 95% 55%;
+
+        --color-background: 0 0% 100%;
+        --color-background-light: 0 0% 95%;
+        --color-background-light-4xs: 0 0% 99.5%;
+        --color-background-light-3xs: 0 0% 99%;
+        --color-background-light-2xs: 0 0% 98.5%;
+        --color-background-light-xs: 0 0% 98%;
+        --color-background-light-sm: 0 0% 97%;
+        --color-background-light-md: 0 0% 95%;
+        --color-background-light-xl: 0 0% 90%;
+        --color-background-light-2xl: 0 0% 85%;
+        --color-background-light-3xl: 0 0% 80%;
+        --color-background-btn: 258 100% 86%;
+        --color-foreground: 0 0% 10%;
+        --color-foreground-light: 0 0% 30%;
+        --color-foreground-light-sm: 0 0% 40%;
+        --color-foreground-light-md: 0 0% 50%;
+        --color-foreground-light-xl: 0 0% 60%;
+        --color-border: 0 0% 87%;
+        --color-input: 0 0% 87%;
+        --color-ring: 262 70% 62%;
+        --color-card: 0 0% 100%;
+        --color-card-foreground: 0 0% 10%;
+        --color-popover: 0 0% 100%;
+        --color-popover-foreground: 0 0% 10%;
+        --color-muted: 0 0% 96%;
+        --color-muted-foreground: 0 0% 45%;
+        --color-accent: 0 0% 96%;
+        --color-accent-foreground: rgba(205, 183, 255, 0.2);
+
+    }
+
+    .dark {
+        /* Dark mode */
+        --color-primary: 258 100% 86%;
+        --color-primary-foreground: 0 0% 0%;
+        --color-secondary: 240 6% 20%;
+        --color-secondary-foreground: 258 100% 86%;
+        --color-tertiary: 10 85% 75%;
+        --color-tertiary-foreground: 0 0% 10%;
+        --color-neutral: 0 0% 97%;
+        --color-neutral-foreground: 0 0% 10%;
+        --color-success: 150 65% 45%;
+        --color-warning: 35 95% 55%;
+
+        --color-background: 240 6% 10%;
+        --color-background-light: 240 6% 15%;
+        --color-background-light-4xs: 240 6% 1%;
+        --color-background-light-3xs: 240 6% 3%;
+        --color-background-light-2xs: 240 6% 5%;
+        --color-background-light-xs: 240 6% 10%;
+        --color-background-light-sm: 240 6% 12%;
+        --color-background-light-md: 240 6% 15%;
+        --color-background-light-xl: 240 6% 20%;
+        --color-background-light-2xl: 240 6% 25%;
+        --color-background-light-3xl: 240 6% 30%;
+        --color-background-btn: 258 100% 86%;
+        --color-foreground: 0 0% 90%;
+        --color-foreground-light: 0 0% 70%;
+        --color-foreground-light-sm: 0 0% 60%;
+        --color-foreground-light-md: 0 0% 50%;
+        --color-foreground-light-xl: 0 0% 40%;
+        --color-border: 0 0% 20%;
+        --color-input: 0 0% 20%;
+        --color-card: 0 0% 12%;
+        --color-card-foreground: 0 0% 98%;
+        --color-popover: 0 0% 12%;
+        --color-popover-foreground: 0 0% 98%;
+        --color-muted: 0 0% 18%;
+        --color-muted-foreground: 0 0% 65%;
+        --color-accent: 0 0% 18%;
+        --color-accent-foreground: 0 0% 98%;
+    }
+
+    * {
+        @apply border-border;
+    }
+
+
+    html,
+    body {
+        @apply bg-background text-foreground font-body;
+        color: hsl(0, 0%, 10%);
+    }
+}
+
+
+@layer utilities {
+    .gradient-bg {
+        /* background: linear-gradient(135deg, hsl(270, 75%, 90%) 0%, hsl(10, 90%, 90%) 100%); */
+        background: linear-gradient(135deg, #D6B7FF 0%, #FF6F61 100%);
+    }
+}
+
+
+/* Hide input:number arrows */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type=number] {
+    -moz-appearance:textfield; /* Firefox */
+}
+
