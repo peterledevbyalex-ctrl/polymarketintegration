@@ -78,20 +78,17 @@ export const TradeForm: React.FC<TradeFormProps> = ({
 
         <div>
           <label className="text-sm font-medium text-foreground mb-2 block">
-            Amount (USD)
+            Amount (ETH)
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground">$</span>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              step="0.01"
-              min="0"
-              className="w-full rounded-lg bg-background border border-background-light-sm pl-8 pr-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors"
-              placeholder="10.00"
-            />
-          </div>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            step="0.01"
+            min="0"
+            className="w-full rounded-lg bg-background border border-background-light-sm px-4 py-3 text-foreground focus:outline-none focus:border-primary transition-colors"
+            placeholder="0.1"
+          />
         </div>
 
         <div className="rounded-lg bg-background p-4 space-y-2">

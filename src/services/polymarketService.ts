@@ -477,9 +477,6 @@ export class PolymarketService {
         price: orderPrice, 
         side,
         outcome: intent.outcome,
-        // Additional debug info for trading math
-        amountUsdc: isSell ? 'N/A (SELL)' : amountUsdc.toFixed(2),
-        math: isSell ? 'N/A' : `${amountUsdc.toFixed(2)} USD / ${orderPrice} price = ${size.toFixed(2)} shares`
       });
       
       // Submit order to CLOB

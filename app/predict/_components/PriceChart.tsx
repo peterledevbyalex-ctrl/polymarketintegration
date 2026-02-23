@@ -69,7 +69,7 @@ export const PriceChart: React.FC<PriceChartProps> = ({
 
     const width = 680;
     const height = 200;
-    const padding = { top: 30, right: 40, bottom: 30, left: 60 }; // More padding for better labels
+    const padding = { top: 20, right: 20, bottom: 20, left: 20 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -79,30 +79,11 @@ export const PriceChart: React.FC<PriceChartProps> = ({
       return padding.top + chartHeight - ((price - minPrice) / range) * chartHeight;
     };
 
-    // Create smooth curve using quadratic bezier curves
-    if (data.length < 2) return '';
-    
-    let pathData = '';
-    
-    for (let i = 0; i < data.length; i++) {
+    const pathData = data.map((point, i) => {
       const x = xScale(i);
-      const y = yScale(data[i].p);
-      
-      if (i === 0) {
-        pathData += `M ${x} ${y}`;
-      } else {
-        const prevX = xScale(i - 1);
-        const prevY = yScale(data[i - 1].p);
-        
-        // Control points for smooth curve
-        const cpX1 = prevX + (x - prevX) * 0.5;
-        const cpY1 = prevY;
-        const cpX2 = prevX + (x - prevX) * 0.5;
-        const cpY2 = y;
-        
-        pathData += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${x} ${y}`;
-      }
-    }
+      const y = yScale(point.p);
+      return i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`;
+    }).join(' ');
 
     return pathData;
   }, [data, minPrice, maxPrice]);
@@ -112,7 +93,7 @@ export const PriceChart: React.FC<PriceChartProps> = ({
 
     const width = 680;
     const height = 200;
-    const padding = { top: 30, right: 40, bottom: 30, left: 60 };
+    const padding = { top: 20, right: 20, bottom: 20, left: 20 };
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 

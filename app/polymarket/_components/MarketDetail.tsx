@@ -57,9 +57,7 @@ export const MarketDetail: React.FC<MarketDetailProps> = ({ market, onBack, onTr
     outcome,
     autoFetch: !!conditionId && showOrderBook,
   });
-  // Fix: parseFloat("0") returns 0, not falsy, so || doesn't work
-  const ethPriceParsed = parseFloat(lastEthPrice);
-  const ethPrice = ethPriceParsed > 0 ? ethPriceParsed : 3000; // From Redstone via useApp
+  const ethPrice = parseFloat(lastEthPrice) || 3000; // From Redstone via useApp
   const { userBalance } = useUserBalance(userAddress as `0x${string}`);
 
   const userPositionForMarket = useMemo(() => {

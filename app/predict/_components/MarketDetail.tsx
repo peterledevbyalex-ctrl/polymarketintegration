@@ -6,9 +6,6 @@ import Link from 'next/link';
 import { Market, Outcome, PolymarketHolder, PricePoint } from '@/types/polymarket.types';
 import { TradeButton } from './TradeButton';
 import { PriceChart } from './PriceChart';
-import { EnhancedPriceChart } from './EnhancedPriceChart';
-import { RoundsNavigation } from './RoundsNavigation';
-import { EnhancedCountdown } from './EnhancedCountdown';
 import { useOrderbook } from '@/hooks/useOrderbook';
 import { usePriceHistory } from '@/hooks/usePriceHistory';
 import { useCryptoPriceHistory } from '@/hooks/useCryptoPriceHistory';
@@ -395,9 +392,7 @@ export const MarketDetail: React.FC<MarketDetailProps> = ({
     if (market.tradeable !== undefined) return !market.tradeable;
     return !!market.closed || !market.active;
   }, [isCryptoRoundSeries, market.acceptingOrders, market.closed, market.active, market.tradeable]);
-  // Fix: parseFloat("0") returns 0, not falsy, so || doesn't work
-  const ethPriceParsed = parseFloat(lastEthPrice);
-  const ethPrice = ethPriceParsed > 0 ? ethPriceParsed : 3000; // From Redstone via useApp
+  const ethPrice = parseFloat(lastEthPrice) || 3000; // From Redstone via useApp
   const { userBalance } = useUserBalance(userAddress as `0x${string}`);
 
   useEffect(() => {
@@ -1070,15 +1065,8 @@ export const MarketDetail: React.FC<MarketDetailProps> = ({
                     </div>
                   </div>
                   <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[#71717b] mb-2">Round Ends In</div>
-                    <EnhancedCountdown
-                      endTime={new Date(Date.now() + roundRemainingSec * 1000)}
-                      theme="crypto"
-                      size="lg"
-                      showProgress={true}
-                      totalDuration={300} // 5 minutes in seconds
-                      className="!bg-transparent !border-none !p-0"
-                    />
+                    <div className="text-[11px] uppercase tracking-wide text-[#71717b]">Round Ends In</div>
+                    <div className="text-2xl font-bold text-white">{formatRoundTimer(roundRemainingSec)}</div>
                   </div>
                 </div>
               </div>
@@ -1327,34 +1315,16 @@ export const MarketDetail: React.FC<MarketDetailProps> = ({
                   </div>
                 </div>
               ) : (shouldUseUnderlyingPriceChart || tokenId) ? (
-                <div className="space-y-6">
-                  {/* Rounds Navigation for crypto 5-minute markets */}
-                  {shouldUseUnderlyingPriceChart && 
-                   (market.question.includes('5:') || market.recurrence?.toLowerCase().includes('minute')) && (
-                    <RoundsNavigation
-                      currentMarket={market}
-                      onRoundSelect={(roundId) => {
-                        console.log('Round selected:', roundId);
-                        // TODO: Handle round selection logic
-                      }}
-                    />
-                  )}
-                  
-                  {/* Enhanced Price Chart */}
-                  <EnhancedPriceChart
-                    data={chartData}
-                    isLoading={chartLoading}
-                    timeRange={chartTimeRange}
-                    onTimeRangeChange={(range) => setChartTimeRange(range)}
-                    outcome={outcome}
-                    valueMode={shouldUseUnderlyingPriceChart ? 'price' : 'probability'}
-                    priceLabel={chainlinkSymbol ? chainlinkSymbol.toUpperCase() : undefined}
-                    targetPrice={shouldUseUnderlyingPriceChart ? lockPrice ?? undefined : undefined}
-                    height={shouldUseUnderlyingPriceChart ? 400 : 320}
-                    isCryptoMarket={shouldUseUnderlyingPriceChart}
-                    marketTitle={market.question}
-                  />
-                </div>
+                <PriceChart
+                  data={chartData}
+                  isLoading={chartLoading}
+                  timeRange={chartTimeRange}
+                  onTimeRangeChange={(range) => setChartTimeRange(range)}
+                  outcome={outcome}
+                  valueMode={shouldUseUnderlyingPriceChart ? 'price' : 'probability'}
+                  priceLabel={chainlinkSymbol ? chainlinkSymbol.toUpperCase() : undefined}
+                  targetPrice={shouldUseUnderlyingPriceChart ? lockPrice ?? undefined : undefined}
+                />
               ) : (
                 <div className="h-[320px] rounded-lg border border-[#27272a] bg-[#18181b] flex items-center justify-center text-[#71717b]">
                   Price chart unavailable for this market
@@ -1634,17 +1604,10 @@ export const MarketDetail: React.FC<MarketDetailProps> = ({
                     <div className="bg-[#18181b] rounded-[8px] p-4">
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col gap-1">
-                          <div className="text-base text-white font-medium">Total payout if win</div>
-                          <div className="text-xs text-[#9f9fa9] tracking-tight">
-                            {amount ? (parseFloat(amount) / selectedPrice).toFixed(2) : '0.00'} shares @ {(selectedPrice * 100).toFixed(0)}¢
-                          </div>
+                          <div className="text-base text-white font-medium">To win</div>
+                          <div className="text-xs text-[#9f9fa9] tracking-tight">Avg. price {(selectedPrice * 100).toFixed(0)}¢</div>
                         </div>
-                        <div className="flex flex-col items-end">
-                          <div className="text-[28px] font-normal text-[#00ffa3] tracking-tight">${amount ? (parseFloat(amount) / selectedPrice).toFixed(2) : '0.00'}</div>
-                          <div className="text-xs text-[#9f9fa9]">
-                            Profit: ${amount ? ((parseFloat(amount) / selectedPrice) - parseFloat(amount)).toFixed(2) : '0.00'}
-                          </div>
-                        </div>
+                        <div className="text-[28px] font-normal text-[#00ffa3] tracking-tight">${amount ? (parseFloat(amount) / selectedPrice).toFixed(2) : '0.00'}</div>
                       </div>
                     </div>
                   </div>
