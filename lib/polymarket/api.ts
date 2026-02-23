@@ -18,32 +18,56 @@ import {
   OpenOrder,
 } from '@/types/polymarket.types';
 import { POLYMARKET_API_URL } from './constants';
-
-class PolymarketAPIError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public status?: number
-  ) {
-    super(message);
-    this.name = 'PolymarketAPIError';
-  }
-}
+import { 
+  PolymarketAPIError,
+  NetworkError,
+  TimeoutError,
+  handleResponse,
+  withRetry,
+} from './errors';
 
 const USER_POSITIONS_CACHE_TTL_MS = 5000;
 const userPositionsCache = new Map<string, { ts: number; data: UserPositionsResponse }>();
 const userPositionsInFlight = new Map<string, Promise<UserPositionsResponse>>();
 
-const handleResponse = async <T>(response: Response): Promise<T> => {
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new PolymarketAPIError(
-      data.error?.code || 'UNKNOWN_ERROR',
-      data.error?.message || 'An unknown error occurred',
-      response.status
-    );
+// Enhanced fetch with timeout and error handling
+const fetchWithTimeout = async (
+  url: string, 
+  options: RequestInit = {}, 
+  timeoutMs: number = 10000
+): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Prism-Polymarket-Client/1.0',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        ...options.headers,
+      }
+    });
+    
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new TimeoutError(timeoutMs, url);
+      }
+      
+      if (error.message.includes('fetch')) {
+        throw new NetworkError(`Network request failed: ${error.message}`, { url });
+      }
+    }
+    
+    throw error;
   }
-  return response.json();
 };
 
 export const polymarketAPI = {
@@ -102,8 +126,14 @@ export const polymarketAPI = {
     if (params?.sort) queryParams.append('sort', params.sort);
 
     const url = `${POLYMARKET_API_URL}/api/markets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-    const response = await fetch(url);
-    return handleResponse<MarketsResponse>(response);
+    
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url);
+      return handleResponse<MarketsResponse>(response, url);
+    }, {
+      maxAttempts: 3,
+      baseDelay: 1000,
+    });
   },
 
   getCryptoMarkets: async (params?: {
@@ -373,12 +403,102 @@ export const polymarketAPI = {
     orderId: string;
     walletSignature?: string;
   }): Promise<{ orderId: string; status: string; message: string }> => {
-    const response = await fetch(`${POLYMARKET_API_URL}/api/intents/cancel`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
+    const url = `${POLYMARKET_API_URL}/api/intents/cancel`;
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url, {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+      return handleResponse<{ orderId: string; status: string; message: string }>(response, url);
     });
-    return handleResponse<{ orderId: string; status: string; message: string }>(response);
+  },
+
+  // Sports API endpoints
+  getSportsMetadata: async (): Promise<any> => {
+    const url = `${POLYMARKET_API_URL}/api/sports/metadata`;
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url);
+      return handleResponse<any>(response, url);
+    });
+  },
+
+  getSportsTeams: async (params: {
+    sport?: string;
+    league?: string;
+  }): Promise<{ teams: any[] }> => {
+    const queryParams = new URLSearchParams();
+    if (params.sport) queryParams.append('sport', params.sport);
+    if (params.league) queryParams.append('league', params.league);
+    
+    const url = `${POLYMARKET_API_URL}/api/sports/teams${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url);
+      return handleResponse<{ teams: any[] }>(response, url);
+    });
+  },
+
+  getSportsMarkets: async (params?: {
+    sport?: string;
+    league?: string;
+    team?: string;
+    market_type?: 'winner' | 'spread' | 'total' | 'player_props';
+    limit?: number;
+    offset?: number;
+  }): Promise<{ markets: Market[]; pagination?: any; filters?: any }> => {
+    const queryParams = new URLSearchParams();
+    if (params?.sport) queryParams.append('sport', params.sport);
+    if (params?.league) queryParams.append('league', params.league);
+    if (params?.team) queryParams.append('team', params.team);
+    if (params?.market_type) queryParams.append('market_type', params.market_type);
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+    
+    const url = `${POLYMARKET_API_URL}/api/sports/markets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url);
+      return handleResponse<{ markets: Market[]; pagination?: any; filters?: any }>(response, url);
+    });
+  },
+
+  getLiveScores: async (params?: {
+    sport?: string;
+    date?: string;
+  }): Promise<{ games: any[]; lastUpdated: string }> => {
+    const queryParams = new URLSearchParams();
+    if (params?.sport) queryParams.append('sport', params.sport);
+    if (params?.date) queryParams.append('date', params.date);
+    
+    const url = `${POLYMARKET_API_URL}/api/sports/live-scores${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url);
+      return handleResponse<{ games: any[]; lastUpdated: string }>(response, url);
+    });
+  },
+
+  // Enhanced crypto markets with better filtering
+  getEnhancedCryptoMarkets: async (params?: {
+    bucket?: 'bitcoin' | 'ethereum' | 'defi' | 'altcoins' | 'all';
+    timeframe?: '5M' | '10M' | '1H' | '4H' | '1D' | '1W';
+    eventType?: 'price' | 'launch' | 'upgrade';
+    priceRange?: { min: number; max: number };
+    limit?: number;
+    offset?: number;
+  }): Promise<MarketsResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params?.bucket && params.bucket !== 'all') queryParams.append('_c', params.bucket);
+    if (params?.timeframe) queryParams.append('timeframe', params.timeframe);
+    if (params?.eventType) queryParams.append('type', params.eventType);
+    if (params?.limit) queryParams.append('_l', params.limit.toString());
+    if (params?.offset) queryParams.append('_offset', params.offset.toString());
+    queryParams.append('_s', 'volume_24h'); // Always sort by volume
+    queryParams.append('_sts', 'active'); // Only active markets
+    
+    const url = `${POLYMARKET_API_URL}/api/crypto/markets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    return withRetry(async () => {
+      const response = await fetchWithTimeout(url);
+      const data = await handleResponse<MarketsResponse | Market[]>(response, url);
+      return Array.isArray(data) ? { markets: data } : data;
+    });
   },
 };
 
